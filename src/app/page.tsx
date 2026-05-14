@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Loader2, Sparkles, ImageIcon } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
 import ImageCompare from "@/components/ImageCompare";
 import DownloadButton from "@/components/DownloadButton";
@@ -12,9 +12,10 @@ export default function Home() {
   const [processedBlob, setProcessedBlob] = useState<Blob | null>(null);
   const [processedPreview, setProcessedPreview] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [progressLabel, setProgressLabel] = useState("");
   const [remaining, setRemaining] = useState(3);
   const [error, setError] = useState<string | null>(null);
-  const workerRef = useRef<Worker | null>(null);
 
   useEffect(() => {
     setRemaining(getRemainingUses());
@@ -32,6 +33,8 @@ export default function Home() {
     }
 
     setProcessing(true);
+    setProgress(0);
+    setProgressLabel("Downloading AI model...");
     try {
       const { removeBackground } = await import("@imgly/background-removal");
 
@@ -39,6 +42,15 @@ export default function Home() {
         model: "isnet_fp16",
         output: {
           format: "image/png",
+        },
+        progress: (key: string, current: number, total: number) => {
+          const pct = Math.round((current / total) * 100);
+          setProgress(pct);
+          if (key === "download") {
+            setProgressLabel(`Downloading AI model... ${pct}%`);
+          } else {
+            setProgressLabel(`Processing image... ${pct}%`);
+          }
         },
       });
 
@@ -98,11 +110,14 @@ export default function Home() {
         )}
 
         {processing && (
-          <div className="flex flex-col items-center gap-4 py-12">
-            <Loader2 className="h-10 w-10 animate-spin text-blue-500" />
-            <p className="text-sm text-zinc-500">
-              Removing background with AI...
-            </p>
+          <div className="flex flex-col items-center gap-4 py-12 w-full max-w-sm">
+            <div className="w-full h-2 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-blue-500 transition-all duration-300 ease-out"
+                style={{ width: `${progress || 5}%` }}
+              />
+            </div>
+            <p className="text-sm text-zinc-500">{progressLabel}</p>
           </div>
         )}
 

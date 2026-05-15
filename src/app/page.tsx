@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { Sparkles, Zap, Shield, UserX, ChevronDown, ChevronUp } from "lucide-react";
+import { Sparkles, Zap, Shield, UserX, ChevronDown, ChevronUp, BarChart3 } from "lucide-react";
+import { track } from "@vercel/analytics";
 import ImageUploader from "@/components/ImageUploader";
 import ImageCompare from "@/components/ImageCompare";
 import DownloadButton from "@/components/DownloadButton";
@@ -96,6 +97,7 @@ export default function Home() {
       setProcessedPreview(URL.createObjectURL(blob));
       await recordUse();
       await refreshUsage();
+      track("bg-removal", { free: "true" });
     } catch {
       setError("Processing failed. Try a different image.");
     } finally {
@@ -207,7 +209,10 @@ export default function Home() {
               Upgrade to Pro for $9/month — unlimited background removals,
               priority processing, and API access.
             </p>
-            <button className="mt-5 rounded-xl bg-amber-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 transition-colors">
+            <button
+              className="mt-5 rounded-xl bg-amber-600 px-8 py-3 text-sm font-semibold text-white shadow-sm hover:bg-amber-700 transition-colors"
+              onClick={() => track("upgrade-click")}
+            >
               Upgrade to Pro
             </button>
           </div>

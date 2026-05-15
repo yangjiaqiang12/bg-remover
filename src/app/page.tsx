@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import ImageUploader from "@/components/ImageUploader";
 import ImageCompare from "@/components/ImageCompare";
@@ -18,7 +18,11 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setRemaining(getRemainingUses());
+    getRemainingUses().then(setRemaining);
+  }, []);
+
+  const refreshUsage = useCallback(async () => {
+    setRemaining(await getRemainingUses());
   }, []);
 
   const handleImage = useCallback(async (file: File) => {
@@ -26,9 +30,9 @@ export default function Home() {
     setProcessedBlob(null);
     setProcessedPreview(null);
     setOriginalPreview(URL.createObjectURL(file));
-    setRemaining(getRemainingUses());
+    await refreshUsage();
 
-    if (!canUse()) {
+    if (!(await canUse())) {
       return;
     }
 
@@ -56,14 +60,14 @@ export default function Home() {
 
       setProcessedBlob(blob);
       setProcessedPreview(URL.createObjectURL(blob));
-      recordUse();
-      setRemaining(getRemainingUses());
+      await recordUse();
+      await refreshUsage();
     } catch {
       setError("Processing failed. Try a different image.");
     } finally {
       setProcessing(false);
     }
-  }, []);
+  }, [refreshUsage]);
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-white dark:bg-black">
@@ -127,7 +131,7 @@ export default function Home() {
           </div>
         )}
 
-        {!canUse() && originalPreview && !processing && (
+        {!processing && originalPreview && remaining === 0 && (
           <div className="w-full max-w-xl rounded-xl border border-amber-200 bg-amber-50 px-6 py-8 text-center dark:border-amber-800 dark:bg-amber-950/20">
             <h3 className="text-lg font-semibold text-amber-800 dark:text-amber-300">
               You&apos;ve used all 3 free attempts today

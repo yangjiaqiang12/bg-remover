@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, ImageIcon } from "lucide-react";
+import { Upload, ImageIcon, X } from "lucide-react";
 
 interface Props {
   onImage: (file: File) => void;
@@ -25,53 +25,61 @@ export default function ImageUploader({ onImage, disabled }: Props) {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp"] },
+    accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".gif"] },
     maxFiles: 1,
     disabled,
-    maxSize: 10 * 1024 * 1024,
+    maxSize: 15 * 1024 * 1024,
   });
 
   return (
-    <div
-      {...getRootProps()}
-      className={`relative w-full max-w-xl rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-200 cursor-pointer
-        ${isDragActive
-          ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30 scale-[1.02]"
-          : "border-zinc-300 dark:border-zinc-600 hover:border-blue-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-        }
-        ${disabled ? "opacity-50 pointer-events-none" : ""}`}
-    >
-      <input {...getInputProps()} />
-      {preview ? (
-        <div className="flex flex-col items-center gap-4">
-          <img
-            src={preview}
-            alt="Preview"
-            className="max-h-64 rounded-lg object-contain shadow-md"
-          />
-          <p className="text-sm text-zinc-500">
-            Drop a new image or click to replace
-          </p>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 dark:bg-zinc-800">
-            {isDragActive ? (
-              <ImageIcon className="h-8 w-8 text-blue-500" />
-            ) : (
-              <Upload className="h-8 w-8 text-zinc-400" />
-            )}
-          </div>
-          <div>
-            <p className="text-lg font-medium text-zinc-700 dark:text-zinc-200">
-              {isDragActive ? "Drop your image here" : "Drag & drop your image"}
-            </p>
-            <p className="mt-1 text-sm text-zinc-400">
-              or click to browse &middot; PNG, JPG, WebP &middot; max 10MB
+    <div className="w-full max-w-xl">
+      <div
+        {...getRootProps()}
+        className={`group relative rounded-2xl p-10 text-center cursor-pointer transition-all duration-300
+          ${isDragActive
+            ? "bg-blue-50 dark:bg-blue-950/20 ring-2 ring-blue-500 shadow-lg shadow-blue-500/10 scale-[1.01]"
+            : "bg-zinc-50 dark:bg-zinc-900 ring-1 ring-zinc-200 dark:ring-zinc-800 hover:ring-blue-300 hover:shadow-md hover:shadow-zinc-200/50 dark:hover:shadow-none"
+          }
+          ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        <input {...getInputProps()} />
+        {preview ? (
+          <div className="flex flex-col items-center gap-4">
+            <img
+              src={preview}
+              alt="Preview"
+              className="max-h-64 rounded-xl object-contain shadow-sm"
+            />
+            <p className="text-sm text-zinc-400">
+              Drop a new image or click to replace
             </p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col items-center gap-5">
+            <div
+              className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-colors
+                ${isDragActive
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30"
+                  : "bg-white dark:bg-zinc-800 text-zinc-400 group-hover:text-blue-500 shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-700"
+                }`}
+            >
+              {isDragActive ? (
+                <ImageIcon className="h-7 w-7" />
+              ) : (
+                <Upload className="h-7 w-7" />
+              )}
+            </div>
+            <div>
+              <p className="text-lg font-medium text-zinc-800 dark:text-zinc-100">
+                {isDragActive ? "Drop your image here" : "Drag & drop your image"}
+              </p>
+              <p className="mt-1.5 text-sm text-zinc-400">
+                or click to browse &middot; PNG, JPG, WebP, GIF &middot; max 15MB
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

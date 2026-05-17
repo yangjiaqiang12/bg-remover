@@ -1,10 +1,20 @@
+const DB_NAME = "bg-remover";
+const DB_VERSION = 2;
+
 let cachedId: string | null = null;
 
 function openDB(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open("bg-remover", 1);
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
-      req.result.createObjectStore("state");
+      const db = req.result;
+      if (!db.objectStoreNames.contains("state")) {
+        db.createObjectStore("state");
+      }
+      if (!db.objectStoreNames.contains("usage")) {
+        const store = db.createObjectStore("usage", { keyPath: "user_token" });
+        store.createIndex("date", "date", { unique: false });
+      }
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
@@ -37,13 +47,11 @@ async function storeId(id: string): Promise<void> {
 
 export async function getAnonymousId(): Promise<string> {
   if (cachedId) return cachedId;
-
   let id = await getStoredId();
   if (!id) {
     id = crypto.randomUUID();
     await storeId(id);
   }
-
   cachedId = id;
   return id;
 }

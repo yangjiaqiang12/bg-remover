@@ -95,7 +95,7 @@ export default function Home() {
 
       setProcessedBlob(blob);
       setProcessedPreview(URL.createObjectURL(blob));
-      await recordUse();
+      try { await recordUse(); } catch { /* IndexedDB not available */ }
       await refreshUsage();
       track("bg-removal", { free: "true" });
     } catch {
